@@ -1,0 +1,59 @@
+[observation_info.date_info]
+time_zone = "JST"        # time zone [string]
+start_date = 2024-03-19T06:53:00   # sound start date [RFC 3339]
+appendix = ""            # comment
+
+[observation_info.location_info]
+record_env = 1 # record environment [int]
+               # 1: wild; any testing conducted in a natural environment without any type of artificial/human enclosures for the study animals
+               # 2: semi-wild; any testing conducted in a natural environment with artificial/human enclosures for the study animals, such as outdoor pens, or a large human-made environment, such as a manmade pond
+               # 3: captivity; any testing conducted in laboratories, tank environments, by holding the fish, among other completely artificial/human or captive environments
+               # 4: hand-held; when holding an object in your hand and recording audio
+               # from fishsounds.net (https://fishsounds.net/about.js)
+position = [
+    32.71161,
+    129.77558,
+] # record position ([latitude, longitude]) [List]
+installation_depth = 100.0 # deploy depth [float]
+water_depth = 150.0 # depth [float]
+precip_mm = 0.0
+wind_avg_mps = 0.0
+wind_gust_mps = 0.0
+station_distance_km = 0.0
+amedas_id = 0
+
+[observation_info.machine_info]
+machine = "hydrophone"       # [string]
+maker = "aqua-sound"         # [string]
+product_name = "AUSOMS-mini" # [string]
+item_num = "AQM-302"         # [string]
+
+[observation_info.record_info]
+file_format = "WAV" # file format [string]
+fs = 44100          # sampling frequency (Hz) [int]
+bit = 16            # bit number [int]
+channel_num = 1   # channel number [int]
+amp = 10            # pre-amp. or amp. (dB) [int]
+highpass_filter = 0 # high pass filter frequency (Hz) [float]
+lowpass_filter = 0  # low pass filter frequency (Hz) [float]
+
+[observation_info.project_info]
+name = ""       # project name [string]
+repository = "" # link for original data repository [string]
+DOI = ""        # DOI [string]
+
+[source_info]
+cut_source_name = "cut.wav" # sound data file name [string]
+category = 1                # phony category class [int]
+                            # 1: Anthrophony
+                            # 2: Geophony
+                            # 3: Biophony
+                            # 4: Unknown
+sound_source = "Titanic"    # If you know the name of the sound source in more detail [string]
+reliability = 1             # [int]
+                            # 1: The sound source is definitively identified.
+                            # 2: The sound source is not definitively identified, but other modal information (e.g., visual observation, camera, ship AIS) confirms the target.
+                            # 3: The sound source is not definitively identified, but this is the most probable source.
+                            # 4: The sound source is not identified and remains unknown.
+                            # refer to Global inventory of species categorized by known underwater sonifery Looby et.al., 2023 (https://doi.org/10.1038/s41597-023-02745-4)
+appendix = ""               # comment
