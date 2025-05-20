@@ -16,11 +16,11 @@ position = [
 ] # record position ([latitude, longitude]) [List]
 installation_depth = 100.0 # deploy depth [float]
 water_depth = 150.0 # depth [float]
-precip_mm = 0.0
-wind_avg_mps = 0.0
-wind_gust_mps = 0.0
-station_distance_km = 0.0
-amedas_id = 0
+precip_mm = 1016.1
+wind_avg_mps = 10.0
+wind_gust_mps = 0.7
+station_distance_km = 8.86
+amedas_id = 84496
 
 [observation_info.machine_info]
 machine = "hydrophone"       # [string]

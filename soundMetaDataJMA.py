@@ -11,7 +11,11 @@ import requests
 
 DIR, GLOB = pathlib.Path("."), "*.toml"
 URL_S     = "https://www.jma.go.jp/bosai/amedas/const/amedastable.json"
-URL10     = ("https://www.data.jma.go.jp/stats/etrn/view/10min_a1.php"
+# base URL to query JMA 10 minute observation table. Some stations use
+# ``10min_a1.php`` while others use ``10min_s1.php``.  The ``{}`` in the
+# path will be replaced with either ``a1`` or ``s1`` when requesting the
+# data.
+URL10     = ("https://www.data.jma.go.jp/stats/etrn/view/10min_{}.php"
              "?prec_no={}&block_no={:04}&year={}&month={}&day={}&view=")
 
 # util -----------------------------------------------------------------
@@ -25,6 +29,13 @@ def scal(x):
     if pd.isna(x): return None
     if isinstance(x, np.generic): return x.item()
     return x
+
+def to_min(txt):
+    m = re.match(r"^(\d{1,2}):(\d{2})", str(txt).strip())
+    if m is None:
+        return None
+    return int(m.group(1)) * 60 + int(m.group(2))
+
 
 # meta -----------------------------------------------------------------
 def meta():
@@ -56,19 +67,27 @@ def nearest(lat, lon, df):
 
 # JMA ------------------------------------------------------------------
 def jma10(dt, prec, block):
-    url  = URL10.format(prec, block, dt.year, dt.month, dt.day)
-    print(url)
-    resp = requests.get(url); resp.encoding = "shift_jis"
-    try:
-        raw = pd.read_html(io.StringIO(resp.text), header=[0])[0]
-    except ValueError:
-        return pd.DataFrame()
-    cols = raw.iloc[0].tolist()
-    df   = raw.iloc[3:].copy().reset_index(drop=True); df.columns = cols
-    return df.rename(columns={cols[0]: "time",
-                              cols[1]: "precip_mm",
-                              cols[4]: "wind_avg_mps",
-                              cols[6]: "wind_gust_mps"})
+    """JMAの10分観測表を取得する関数。``10min_a1``と``10min_s1``の
+    どちらのパスを使うべきかは地域によって異なるため、失敗した場合は
+    自動的にもう一方を試行する。"""
+
+    for kind in ("a1", "s1"):
+        url = URL10.format(kind, prec, block, dt.year, dt.month, dt.day)
+        print(url)
+        resp = requests.get(url)
+        resp.encoding = "shift_jis"
+        try:
+            raw = pd.read_html(io.StringIO(resp.text), header=[0])[0]
+        except ValueError:
+            continue
+        cols = raw.iloc[0].tolist()
+        df = raw.iloc[3:].copy().reset_index(drop=True)
+        df.columns = cols
+        return df.rename(columns={cols[0]: "time",
+                                  cols[1]: "precip_mm",
+                                  cols[4]: "wind_avg_mps",
+                                  cols[6]: "wind_gust_mps"})
+    return pd.DataFrame()
 
 # patch ----------------------------------------------------------------
 def patch(path, row, dist, aid):
@@ -131,10 +150,13 @@ def main():
         df = jma10(r.jd, prec, block)
         if df.empty or "time" not in df.columns:
             print("    skip: JMA table missing"); continue
-        sel = df[df.time == r.jt]
-        if sel.empty:
-            print("    skip: time row missing"); continue
-        patch(DIR / r.file, sel.iloc[0], r.dist, r.aid)
+        tmin = to_min(r.jt)
+        df['__min'] = df['time'].apply(to_min)
+        avail = df.dropna(subset=['__min'])
+        if avail.empty or tmin is None:
+            print("    skip: time parse error"); continue
+        idx = (avail['__min'] - tmin).abs().idxmin()
+        patch(DIR / r.file, avail.loc[idx], r.dist, r.aid)
         print("    ✅ updated")
 
 if __name__ == "__main__":
